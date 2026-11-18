@@ -13,7 +13,7 @@ then turn on Gamepad mode.
 A game built on this same PPU, file for file:
 [fpga-game-ppu](https://github.com/xHexlabx/fpga-game-ppu).
 
-![The demo world, VRAM page 0](images/world_page0.png)
+![PPU demo](images/demo_default.png)
 
 ## What the PPU is
 
@@ -123,16 +123,39 @@ up/down/left/right, `ui_in[7]` = ROW.
 | `scripts/gen_assets.py` | draws the tiles, sprites and world map; all art is original |
 | `sim/` | testbenches, see below |
 
-## Simulation
+## Verification
 
 Icarus Verilog, Python 3 with numpy and Pillow.
 
 ```sh
-sh sim/run_ppu_tests.sh            # PPU alone vs a Python golden model, 14 test frames
+sh sim/run_ppu_tests.sh            # the PPU alone vs a Python golden model
 cd src
 iverilog -g2005 -o ../sim/out/tb_demo.vvp ../sim/tb_demo.v tt_um_hextex_ppu_demo.v \
          demo_cpu.v ppu.v vga_timing.v chr_rom.v gamepad_pmod_rx.v
 vvp ../sim/out/tb_demo.vvp         # the whole demo, driven like the playground
-python3 ../sim/check_demo.py       # every captured frame vs the golden model
+python3 ../sim/check_demo.py       # each captured frame vs the golden model
 python3 ../sim/frames_to_png.py    # frames as PNGs in sim/out/
 ```
+
+- **PPU vs golden model** (`tb_ppu.v`, `ppu_model.py`): 14 frames, random and
+  directed. They cover sprites wrapping in at the left and top edges and
+  clipped at the right; 9 to 16 sprites on a line; flips on both sizes; 16x16
+  tile addressing past tile 255; "behind" over opaque and transparent
+  background; split at 0, 240 and mid-screen with different pages; scroll
+  wrap; background, sprites or display switched off. Every pixel and the
+  overflow flag match. Also checked: sync widths, `de` exactly 640x480, every
+  line build back to idle before the next one. The worst case is 516 clocks
+  of the 1600 available.
+- **The whole demo** (`tb_demo.v`): driven through the Gamepad Pmod protocol
+  the way the playground drives it. Every button toggles exactly its setting;
+  the d-pad and the `ui_in` switches scroll; ROW raises the overflow flag; with
+  FLICK on, the row of creatures changes frame to frame; sync widths and no
+  unknown values on the pins. Each of the 8 captured frames, read off the
+  Tiny VGA pins, matches the golden model rendering the PPU state of that
+  frame, pixel for pixel, with the real tiles.
+- **Verilator 5.054** with the playground's flags: no errors (only the two
+  `PROCASSINIT` warnings in `vga_timing.v` that project 4 already has).
+
+| Default | ROW: 16 on a line, 8 drawn | BEHIND |
+| --- | --- | --- |
+| ![](images/demo_default.png) | ![](images/demo_row.png) | ![](images/demo_behind.png) |
