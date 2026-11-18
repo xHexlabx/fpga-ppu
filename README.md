@@ -114,11 +114,11 @@ up/down/left/right, `ui_in[7]` = ROW.
 | --- | --- |
 | `info.yaml` | what the VGA Playground loads |
 | `src/ppu.v` | the PPU |
-| `src/vga_timing.v` | 640x480@60 timing (from project 4) |
+| `src/vga_timing.v` | 640x480@60 timing (from an earlier project) |
 | `src/chr_rom.v` | the cartridge's two pattern ROMs |
 | `src/demo_cpu.v` | the demo program |
 | `src/tt_um_hextex_ppu_demo.v` | Tiny Tapeout / playground top |
-| `src/gamepad_pmod_rx.v` | Gamepad Pmod receiver (from project 4) |
+| `src/gamepad_pmod_rx.v` | Gamepad Pmod receiver (from an earlier project) |
 | `src/*.mem` | cartridge data, made by `scripts/gen_assets.py` |
 | `scripts/gen_assets.py` | draws the tiles, sprites and world map; all art is original |
 | `sim/` | testbenches, see below |
